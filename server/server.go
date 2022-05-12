@@ -1,7 +1,6 @@
 package server
 
 import (
-	"encoding/json"
 	"fmt"
 	"getir/handlerMessage"
 	"log"
@@ -73,8 +72,6 @@ func (serverImpl *ServerImpl) handleMemory(w http.ResponseWriter, r *http.Reques
 	}
 
 	if r.Method == "GET" {
-		trainer := TrainerInfo{}
-		json.NewDecoder(r.Body).Decode(&trainer)
 		err := serverImpl.service.takeFromMemory()
 		if err != nil {
 			statusCode, errorMessage := handlerMessage.ToStatusCodeMessage(err)
@@ -88,8 +85,6 @@ func (serverImpl *ServerImpl) handleMemory(w http.ResponseWriter, r *http.Reques
 	}
 
 	if r.Method == "POST" {
-		trainer := TrainerInfo{}
-		json.NewDecoder(r.Body).Decode(&trainer)
 		err := serverImpl.service.insertInMemory()
 		if err != nil {
 			statusCode, errorMessage := handlerMessage.ToStatusCodeMessage(err)
