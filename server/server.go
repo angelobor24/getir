@@ -6,6 +6,7 @@ import (
 	"getir/handlerMessage"
 	"log"
 	"net/http"
+	"strings"
 )
 
 type Server interface {
@@ -40,8 +41,14 @@ func (serverImpl *ServerImpl) retrieveDB(w http.ResponseWriter, r *http.Request)
 	}
 
 	if r.Method == "GET" {
-		param1 := r.URL.Query().Get("test")
-		fmt.Println(param1)
+		startDate := strings.Split(r.URL.Query().Get("startDate"), "-")
+		endDate := strings.Split(r.URL.Query().Get("endDate"), "-")
+		minCount := r.URL.Query().Get("minCount")
+		maxCount := r.URL.Query().Get("maxCount")
+		fmt.Println(startDate)
+		fmt.Println(endDate)
+		fmt.Println(minCount)
+		fmt.Println(maxCount)
 		//trainer := TrainerInfo{}
 		//json.NewDecoder(r.Body).Decode(&trainer)
 		err := serverImpl.service.takeFromDB()
