@@ -17,8 +17,8 @@ type ServiceImpl struct {
 
 // service implementer of the Service interface. This structure implements all the logicto handle the
 // received server request
-func NewServiceImpl() Service {
-	serviceImpl := ServiceImpl{}
+func NewServiceImpl(storage storage.Storage) Service {
+	serviceImpl := ServiceImpl{Storage: storage}
 	return &serviceImpl
 }
 

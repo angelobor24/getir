@@ -28,7 +28,7 @@ func (serverImpl *ServerImpl) StartServer() {
 	http.HandleFunc("/database/retrieve", serverImpl.retrieveDB) // GET
 	http.HandleFunc("/memory", serverImpl.handleMemory)          // POST/GET
 
-	fmt.Printf("Starting insurance pokemon service at port 8080\n")
+	fmt.Printf("Starting GETIR service at port 8080\n")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
 	}
@@ -97,9 +97,7 @@ func (serverImpl *ServerImpl) handleMemory(w http.ResponseWriter, r *http.Reques
 			http.Error(w, errorMessage, statusCode)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(value)
-		w.WriteHeader(http.StatusOK)
 		return
 	}
 
@@ -110,6 +108,7 @@ func (serverImpl *ServerImpl) handleMemory(w http.ResponseWriter, r *http.Reques
 		err := decoder.Decode(&dbValue)
 		if err != nil {
 			http.Error(w, "Error on input", http.StatusBadRequest)
+			return
 		}
 		createdValue, err := serverImpl.service.insertInMemory(dbValue.Key, dbValue.Value)
 		if err != nil {

@@ -20,6 +20,8 @@ var (
 	dbInternal = make(map[string]string)
 )
 
+type Convert func(int32, int32, int32) bool
+
 type InsertInternalDB struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
@@ -34,7 +36,7 @@ type RetrievedFromDB struct {
 type ListOfObject struct {
 	Key        string `json:"key"`
 	CreatedAt  string `json:"createdAt"`
-	TotalCount int    `json:"totalCount"`
+	TotalCount int32  `json:"totalCount"`
 }
 
 type Storage interface {
@@ -44,10 +46,11 @@ type Storage interface {
 }
 
 type StorageImpl struct {
+	acceptValue Convert
 }
 
-func NewStorageImpl() Storage {
-	storageImpl := StorageImpl{}
+func NewStorageImpl(inputFunc func(int32, int32, int32) bool) Storage {
+	storageImpl := StorageImpl{acceptValue: inputFunc}
 	return &storageImpl
 }
 
@@ -89,9 +92,6 @@ func (storageImpl *StorageImpl) TakeFromDB(startDate []string, endDate []string,
 
 	collect := client.Database("getir-case-study").Collection("records")
 
-	//filter := bson.D{{"key", "TAKwGc6Jr4i8Z487"}}
-	//	fromDate := time.Date(YYYY, MM, DD, 0, 0, 0, 0, time.UTC)
-	//toDate := time.Date(YYYY, MM, DD, 0, 0, 0, 0, time.UTC)
 	yearStart, _ := strconv.Atoi(startDate[0])
 	yearEnd, _ := strconv.Atoi(endDate[0])
 	fromDate := time.Date(yearStart, time.November, 4, 0, 0, 0, 0, time.UTC)
@@ -117,27 +117,25 @@ func (storageImpl *StorageImpl) TakeFromDB(startDate []string, endDate []string,
 
 	for _, result := range results {
 		var data ListOfObject
-		fmt.Println(result)
 		response := result.Map()
-		fmt.Println(response["key"])
-		fmt.Println(response["createdAt"])
-		fmt.Println(response["counts"])
-		fmt.Println(response["value"])
 		interfaceArray := response["counts"]
 		array := interfaceArray.(primitive.A)
 		timeRetrieved := response["createdAt"]
 		timeConverted := timeRetrieved.(primitive.DateTime)
 		timeFinalType := time.Unix(timeConverted.Time().Unix(), 0).Format(time.RFC3339)
-		fmt.Println(time.Unix(timeConverted.Time().Unix(), 0).Format(time.RFC3339))
 		var sum int32
 		for _, value := range array {
 			sum += value.(int32)
 		}
-		data.TotalCount = int(sum)
-		data.Key = response["key"].(string)
-		data.CreatedAt = timeFinalType
-		listData = append(listData, data)
-		fmt.Println(sum)
+		timeConvertedMin, _ := strconv.Atoi(minCount)
+		timeConvertedMax, _ := strconv.Atoi(maxCount)
+		if storageImpl.acceptValue(int32(timeConvertedMin), int32(timeConvertedMax), sum) {
+			data.TotalCount = sum
+			data.Key = response["key"].(string)
+			data.CreatedAt = timeFinalType
+			listData = append(listData, data)
+		}
+
 	}
 	defer cursor.Close(context.TODO())
 	return listData, nil
