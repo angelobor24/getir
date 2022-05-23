@@ -41,3 +41,15 @@ go run ./cmd
 docker build -t <image_name> .
 
 docker run -p 8080:8080 -t <image_name> .
+
+
+### Curl for test
+
+Query to MongoDB:
+ curl -X GET 'http://127.0.0.1:8080/database/retrieve?startDate=2015-12-13&endDate=2023-10-31&minCount=23&maxCount=1000'
+
+Insert new value into local DB:
+ curl -X POST 'http://127.0.0.1:8080/memory' -d '{"key": "test", "value": "test"}'
+
+Retrieve a value from local DB:
+ curl -X GET 'http://127.0.0.1:8080/memory?key=test'
