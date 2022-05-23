@@ -1,17 +1,14 @@
 FROM golang:1.16-alpine
 
-WORKDIR /demo_pok
+WORKDIR /getir
 
 COPY ./go.mod .
 COPY ./go.sum .
 
 
 COPY ./cmd/*.go ./
-COPY ./config/*.go ./
-COPY ./db/*.go ./
 COPY ./handlerMessage/*.go ./
-COPY ./payment/*.go ./
-COPY ./poke/*.go ./
+COPY ./storage/*.go ./
 COPY ./server/*.go ./
 COPY . .
 RUN apk add build-base

@@ -14,6 +14,7 @@ type Server interface {
 	StartServer()
 }
 
+// use the service field for a dynamic behaviour of client responce handler
 type ServerImpl struct {
 	service Service
 }
@@ -34,7 +35,6 @@ func (serverImpl *ServerImpl) StartServer() {
 	}
 }
 
-// handler for POST request to /trainer endpoint
 func (serverImpl *ServerImpl) retrieveDB(w http.ResponseWriter, r *http.Request) {
 	var totalData storage.RetrievedFromDB
 	if r.URL.Path != "/database/retrieve" {
@@ -47,6 +47,7 @@ func (serverImpl *ServerImpl) retrieveDB(w http.ResponseWriter, r *http.Request)
 		endDate := strings.Split(r.URL.Query().Get("endDate"), "-")
 		minCount := r.URL.Query().Get("minCount")
 		maxCount := r.URL.Query().Get("maxCount")
+		// start validation of the input
 		if !ValidateDate(startDate) {
 			http.Error(w, "Start Data not valid", http.StatusBadRequest)
 			return
@@ -75,7 +76,7 @@ func (serverImpl *ServerImpl) retrieveDB(w http.ResponseWriter, r *http.Request)
 		}
 		totalData.List = retrievedData
 		totalData.Message = "Success"
-		w.WriteHeader(http.StatusCreated)
+		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(totalData)
 		return
 	}

@@ -33,7 +33,7 @@ func TestRetrieveDB(t *testing.T) {
 	serviceMock := NewMockService(storage, insertedValue, "", listData, nil)
 	server := NewServerImplTest(serviceMock)
 	server.retrieveDB(w, req)
-	assert.Equal(t, w.Code, http.StatusCreated)
+	assert.Equal(t, w.Code, http.StatusOK)
 }
 
 func TestRetrieveDBErrorMinCount(t *testing.T) {

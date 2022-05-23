@@ -16,6 +16,7 @@ import (
 
 const uri = "mongodb+srv://challengeUser:WUMglwNBaydH8Yvu@challenge-xzwqd.mongodb.net/getir-case-study?retryWrites=true"
 
+// local DB handled with a map
 var (
 	dbInternal = make(map[string]string)
 )
@@ -54,7 +55,6 @@ func NewStorageImpl(inputFunc func(int32, int32, int32) bool) Storage {
 	return &storageImpl
 }
 
-// service to add a new trainer into the system
 func (storageImpl *StorageImpl) InsertInMemory(key string, value string) (InsertInternalDB, error) {
 	var insertedValue InsertInternalDB
 	if dbInternal[key] == "" {
@@ -94,8 +94,12 @@ func (storageImpl *StorageImpl) TakeFromDB(startDate []string, endDate []string,
 
 	yearStart, _ := strconv.Atoi(startDate[0])
 	yearEnd, _ := strconv.Atoi(endDate[0])
-	fromDate := time.Date(yearStart, time.November, 4, 0, 0, 0, 0, time.UTC)
-	toDate := time.Date(yearEnd, time.November, 5, 0, 0, 0, 0, time.UTC)
+	monthStart, _ := strconv.Atoi(startDate[1])
+	monthEnd, _ := strconv.Atoi(endDate[1])
+	dayStart, _ := strconv.Atoi(startDate[2])
+	dayEnd, _ := strconv.Atoi(endDate[2])
+	fromDate := time.Date(yearStart, time.Month(monthStart), dayStart, 0, 0, 0, 0, time.UTC)
+	toDate := time.Date(yearEnd, time.Month(monthEnd), dayEnd, 0, 0, 0, 0, time.UTC)
 	filter := bson.M{
 		"createdAt": bson.M{
 			"$gt": fromDate,

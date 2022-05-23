@@ -15,8 +15,6 @@ type ServiceImpl struct {
 	Storage storage.Storage
 }
 
-// service implementer of the Service interface. This structure implements all the logicto handle the
-// received server request
 func NewServiceImpl(storage storage.Storage) Service {
 	serviceImpl := ServiceImpl{Storage: storage}
 	return &serviceImpl
@@ -59,7 +57,8 @@ func validateCount(value string) bool {
 
 }
 
-// service to add a new trainer into the system
+// all the logic related to the DB are injected. In the future, if the DB will change, it will be necessary
+// to change only the Storage field of serviceImpl structure.
 func (serviceImpl *ServiceImpl) insertInMemory(key string, value string) (storage.InsertInternalDB, error) {
 	return serviceImpl.Storage.InsertInMemory(key, value)
 }
