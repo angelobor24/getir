@@ -28,11 +28,13 @@ func TestFT1(t *testing.T) {
 	newInternalElement := storage.InsertInternalDB{Key: "test", Value: "valueTest"}
 	postBody, _ := json.Marshal(newInternalElement)
 	responseBody := bytes.NewBuffer(postBody)
+	// check insert into local DB
 	_, err := http.Post("http://127.0.0.1:8080/memory", "application/json", responseBody)
 	assert.Equal(t, err, nil)
 	time.Sleep(2 * time.Second)
 	postBody, _ = json.Marshal(newInternalElement)
 	responseBody = bytes.NewBuffer(postBody)
+	// check retrieve data
 	resp, err := http.Get("http://127.0.0.1:8080/memory?key=test")
 	assert.Equal(t, err, nil)
 	assert.Equal(t, resp.StatusCode, http.StatusOK)
@@ -52,30 +54,3 @@ func TestFT1(t *testing.T) {
 	assert.Equal(t, err, nil)
 	assert.Equal(t, resp.StatusCode, http.StatusNotFound)
 }
-
-/*
-	var totalPrice float32 = 9.5
-	pokeApi := poke.NewPokemonAPIimpl()
-	dbImpl := db.NewStorageImpl("sqlite3", "pokemonInsurance", "?_foreign_keys=true")
-	dbImpl.InitializeTables(db.ListTables[:])
-	serverImpl := server.NewServerImpl(server.NewServiceImpl(pokeApi, payment.NewPaymentImpl()), dbImpl)
-	go serverImpl.StartServer()
-	time.Sleep(2 * time.Second)
-	trainer := server.TrainerInfo{}
-	trainer.Idtrainer = 24
-	trainer.Name = "testq"
-	trainer.Surname = "testq"
-	quote := server.Quote{}
-	quote.Pokemon = "bulbasaur"
-	postBody, _ := json.Marshal(trainer)
-	responseBody := bytes.NewBuffer(postBody)
-	resp, _ := http.Post("http://127.0.0.1:8080/trainer", "application/json", responseBody)
-	assert.Equal(t, resp.StatusCode, http.StatusCreated)
-	responseBody = bytes.NewBuffer(postBody)
-	resp, _ = http.Post("http://127.0.0.1:8080/trainer", "application/json", responseBody)
-	assert.Equal(t, resp.StatusCode, http.StatusConflict)
-	dbImpl.InsertBaseQuote("fire", 9.5)
-	dbImpl.InsertBaseQuote("grass", 9.5)
-	dbImpl.InsertBaseQuote("water", 9.5)
-	dbImpl.InsertExtraQuote("flying", 0.5)
-*/
