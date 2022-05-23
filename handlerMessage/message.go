@@ -7,42 +7,36 @@ import (
 )
 
 var (
-	// ErrMandatoryParameterMissing  error in case of mandatory parameter is missing in the request
-	ErrInputParameters = errors.New("Error on input request")
-	// ErrResourceAlreadyExist  error in case the resource already exist
-	ErrResourceAlreadyExist = errors.New("Resource Already Exist")
-	// ErrInternalError  error in case internal server erro
-	ErrInternalError = errors.New("Internal Error")
-	// ErrSecurityToken  error in case the provided mt is not valid
-	ErrSecurityToken = errors.New("Mt token not valid")
-	// ErrServicePokemon  error in case the provided pokemon name is not valid or the service is unavailable
-	ErrServicePokemon = errors.New("Error while fetch pokemon info. Please check your connection or insert valid pokemon name")
-	// ErrPokemonName  error in case the provided pokemon name is not valid
-	ErrPokemonCategory = errors.New("This category is not covered by insurance")
-	// ErrQuoteNotFound  error in case doesn't exist an insurance for the pokemon
-	ErrQuoteNotFound = errors.New("Doesn't exist a quote for this pokemon")
-	// ErrPaymentSystem  error in case doesn't exist an insurance for the pokemon
-	ErrPaymentSystem = errors.New("Payment failed")
-	// NoErrorResourceCreated in case a new resource is created
-	NoErrorResourceCreated = errors.New("Resource Created")
+	// ErrRetrieveData in case an error during retrieve data from DB
+	ErrRetrieveData = errors.New("Error during retrieve Data")
+	// ErrFindData in case an error during find data from DB
+	ErrFindData = errors.New("Error during find Data")
+	// ErrConnection in case an error during connection with DB
+	ErrConnection = errors.New("Error during connection with DB")
+	// ErrCheckConnection in case an error during connection with DB
+	ErrCheckConnection = errors.New("Error during check connection with DB")
+	// ErrDataNotFound in case an error during connection with DB
+	ErrDataNotFound = errors.New("No data available")
+	// ErrDataAlreadyPresent in case the key already exist into DB
+	ErrDataAlreadyPresent = errors.New("Data already present into DB")
 )
 
-// translate the internal error code to http StatusCode and related message
-func ToStatusCodeMessage(err error) (int, string) {
+// translate the internal error code to http StatusCode and related message/code
+func ToStatusCodeMessage(err error) (int, string, int) {
 	switch err {
-	case ErrInputParameters:
-		return http.StatusBadRequest, err.Error()
-	case ErrResourceAlreadyExist:
-		return http.StatusConflict, err.Error()
-	case ErrSecurityToken:
-		return http.StatusUnauthorized, err.Error()
-	case NoErrorResourceCreated:
-		return http.StatusCreated, err.Error()
-	case ErrServicePokemon, ErrPokemonCategory, ErrPaymentSystem:
-		return http.StatusBadRequest, err.Error()
-	case ErrQuoteNotFound:
-		return http.StatusNotFound, err.Error()
+	case ErrRetrieveData:
+		return http.StatusBadRequest, err.Error(), 1
+	case ErrFindData:
+		return http.StatusInternalServerError, err.Error(), 2
+	case ErrConnection:
+		return http.StatusInternalServerError, err.Error(), 3
+	case ErrCheckConnection:
+		return http.StatusInternalServerError, err.Error(), 4
+	case ErrDataNotFound:
+		return http.StatusNotFound, err.Error(), 5
+	case ErrDataAlreadyPresent:
+		return http.StatusConflict, err.Error(), 6
 	default:
-		return http.StatusInternalServerError, "Internal Error"
+		return http.StatusInternalServerError, "Internal Error", 7
 	}
 }

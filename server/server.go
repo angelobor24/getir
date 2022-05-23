@@ -1,8 +1,10 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"getir/handlerMessage"
+	"getir/storage"
 	"log"
 	"net/http"
 	"strings"
@@ -34,6 +36,7 @@ func (serverImpl *ServerImpl) StartServer() {
 
 // handler for POST request to /trainer endpoint
 func (serverImpl *ServerImpl) retrieveDB(w http.ResponseWriter, r *http.Request) {
+	var totalData storage.RetrievedFromDB
 	if r.URL.Path != "/database/retrieve" {
 		http.Error(w, "404 not found.", http.StatusNotFound)
 		return
@@ -44,24 +47,38 @@ func (serverImpl *ServerImpl) retrieveDB(w http.ResponseWriter, r *http.Request)
 		endDate := strings.Split(r.URL.Query().Get("endDate"), "-")
 		minCount := r.URL.Query().Get("minCount")
 		maxCount := r.URL.Query().Get("maxCount")
-		fmt.Println(startDate)
-		fmt.Println(endDate)
-		fmt.Println(minCount)
-		fmt.Println(maxCount)
-		//trainer := TrainerInfo{}
-		//json.NewDecoder(r.Body).Decode(&trainer)
-		err := serverImpl.service.takeFromDB()
-		if err != nil {
-			statusCode, errorMessage := handlerMessage.ToStatusCodeMessage(err)
-			http.Error(w, errorMessage, statusCode)
+		if !ValidateDate(startDate) {
+			http.Error(w, "Start Data not valid", http.StatusBadRequest)
+			return
+		}
+		if !ValidateDate(endDate) {
+			http.Error(w, "End Data not valid", http.StatusBadRequest)
+			return
+		}
+		if !validateCount(minCount) {
+			http.Error(w, "minCount Not valid", http.StatusBadRequest)
+			return
+		}
+		if !validateCount(maxCount) {
+			http.Error(w, "maxCount not valid", http.StatusBadRequest)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
+		retrievedData, err := serverImpl.service.takeFromDB(startDate, endDate, minCount, maxCount)
+		if err != nil {
+			statusCode, errorMessage, code := handlerMessage.ToStatusCodeMessage(err)
+			w.WriteHeader(statusCode)
+			totalData.Code = code
+			totalData.Message = errorMessage
+			json.NewEncoder(w).Encode(totalData)
+			return
+		}
+		totalData.List = retrievedData
+		totalData.Message = "Success"
 		w.WriteHeader(http.StatusCreated)
-		//json.NewEncoder(w).Encode()
+		json.NewEncoder(w).Encode(totalData)
 		return
 	}
-
 	http.Error(w, "Method is not supported.", http.StatusMethodNotAllowed)
 }
 
@@ -71,29 +88,38 @@ func (serverImpl *ServerImpl) handleMemory(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	if r.Method == "GET" {
-		err := serverImpl.service.takeFromMemory()
+		keyFilter := r.URL.Query().Get("key")
+		value, err := serverImpl.service.takeFromMemory(keyFilter)
 		if err != nil {
-			statusCode, errorMessage := handlerMessage.ToStatusCodeMessage(err)
+			statusCode, errorMessage, _ := handlerMessage.ToStatusCodeMessage(err)
 			http.Error(w, errorMessage, statusCode)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
-		//json.NewEncoder(w).Encode(resourceCreated)
+		json.NewEncoder(w).Encode(value)
+		w.WriteHeader(http.StatusOK)
 		return
 	}
 
 	if r.Method == "POST" {
-		err := serverImpl.service.insertInMemory()
+		var dbValue storage.InsertInternalDB
+		decoder := json.NewDecoder(r.Body)
+		decoder.DisallowUnknownFields()
+		err := decoder.Decode(&dbValue)
 		if err != nil {
-			statusCode, errorMessage := handlerMessage.ToStatusCodeMessage(err)
+			http.Error(w, "Error on input", http.StatusBadRequest)
+		}
+		createdValue, err := serverImpl.service.insertInMemory(dbValue.Key, dbValue.Value)
+		if err != nil {
+			statusCode, errorMessage, _ := handlerMessage.ToStatusCodeMessage(err)
 			http.Error(w, errorMessage, statusCode)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		//json.NewEncoder(w).Encode(resourceCreated)
+		json.NewEncoder(w).Encode(createdValue)
 		return
 	}
 
